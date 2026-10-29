@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Interactive teaching simulator for the Merchant orthogonal cutting model.">
+<title>Orthogonal Cutting | Interactive Merchant Model</title>
+<style>
+  :root { color-scheme: light; --ink:#243449; --muted:#60738a; --line:#dce5ef; --blue:#287d91; --orange:#b56a27; --red:#cc4c46; --purple:#695ac8; --surface:#fff; --bg:#f4f7fb; }
+  * { box-sizing: border-box; }
+  body { font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif; margin:0; padding:clamp(12px,2.3vw,28px); background:var(--bg); color:var(--ink); }
+  main { max-width:1300px; margin:0 auto; }
+  .heading { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; margin-bottom:20px; }
+  .eyebrow { font-weight:800; font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--blue); margin:0 0 7px; }
+  h1 { font-size:clamp(21px,2.6vw,31px); letter-spacing:-.035em; line-height:1.15; margin:0 0 7px; }
+  .subtitle { color:var(--muted); font-size:14px; margin:0; line-height:1.5; }
+  button { cursor:pointer; border:1px solid #c9d7e5; border-radius:9px; background:#fff; padding:9px 12px; color:var(--ink); font:600 12px inherit; white-space:nowrap; }
+  button:hover { background:#edf3f9; }
+  button:focus-visible,input:focus-visible { outline:3px solid #88b4e6; outline-offset:3px; }
+  .actions { display:flex; flex-wrap:wrap; gap:8px; }
+  .layout { display:grid; grid-template-columns:minmax(0,1.74fr) minmax(290px,0.86fr); gap:16px; align-items:start; }
+  .panel { background:var(--surface); border:1px solid var(--line); border-radius:14px; box-shadow:0 1px 3px rgba(25,46,79,.03); overflow:hidden; }
+  .panel-head { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:17px 20px 0; }
+  h2 { margin:0; font-size:15px; letter-spacing:-.01em; }
+  .smallcaps { color:var(--muted); font-size:11px; letter-spacing:.08em; text-transform:uppercase; font-weight:750; }
+  .figure { position:relative; padding:4px 10px 6px; }
+  #cutting-figure { width:100%; height:auto; display:block; }
+  #cutting-figure text { font-family:system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; }
+  .legend { display:flex; gap:16px; flex-wrap:wrap; padding:0 20px 17px; font-size:11px; color:var(--muted); }
+  .swatch { width:11px; height:11px; border-radius:3px; display:inline-block; vertical-align:-1px; margin-right:5px; }
+  .control-panel { margin-top:16px; padding:18px 20px 20px; }
+  .control-heading { display:flex; justify-content:space-between; gap:12px; align-items:center; margin-bottom:16px; }
+  .controls { display:grid; grid-template-columns:1fr 1fr; gap:16px 25px; }
+  .control label { display:flex; align-items:baseline; justify-content:space-between; gap:9px; color:var(--ink); font-weight:620; font-size:13px; margin-bottom:9px; }
+  output { font-variant-numeric:tabular-nums; font-size:14px; color:#1c596e; font-weight:780; }
+  input[type=range] { display:block; width:100%; margin:0; cursor:pointer; accent-color:#277b97; }
+  .ends { display:flex; justify-content:space-between; font-size:11px; color:var(--muted); margin-top:5px; }
+  .results { padding:17px 20px 14px; }
+  .result { display:flex; justify-content:space-between; gap:12px; border-bottom:1px solid #edf1f6; padding:11px 0; align-items:baseline; font-size:13px; }
+  .result:last-of-type { border-bottom:0; }
+  .result span:first-child { color:#5b6e83; }
+  .result strong { font-variant-numeric:tabular-nums; font-size:16px; font-weight:750; white-space:nowrap; }
+  .equations { margin:0 20px 20px; background:#f5f8fc; border:1px solid #e5eaf1; border-radius:10px; padding:13px 14px; }
+  .equations p { margin:0 0 8px; font-size:12px; color:#5b6c7e; }
+  .equations p:last-child { margin:0; }
+  .equations code { font:500 14px ui-monospace,SFMono-Regular,Consolas,monospace; color:#23354c; }
+  .friction { margin-top:16px; padding:16px 20px; }
+  .friction svg { display:block; width:100%; max-width:300px; margin:5px auto 0; height:154px; }
+  .note { font-size:12px; line-height:1.55; color:#526780; margin:15px 2px 0; padding:12px 15px; border-left:3px solid #a3b5ca; }
+  .tip { background:#edf7f9; border-radius:9px; padding:11px 13px; margin:15px 0 0; font-size:12px; color:#335a66; line-height:1.5; }
+  @media(max-width:830px) { .layout { grid-template-columns:minmax(0,1fr); } .results { display:grid; grid-template-columns:1fr 1fr; gap:0 18px; } .results h2 { grid-column:1/-1; } .equations { margin-top:12px; } }
+  @media(max-width:520px) { .heading { flex-direction:column; } .actions { align-self:flex-start; } .controls { grid-template-columns:1fr; } .results { display:block; } .panel-head { padding:14px 14px 0; } .legend { padding:0 14px 14px; } .control-panel,.results { padding:14px; } .equations { margin:0 14px 14px; } .smallcaps { display:none; } }
+</style>
+</head>
+<body>
+<main>
+  <div class="heading">
+    <div>
+      <p class="eyebrow">Interactive manufacturing mechanics</p>
+      <h1>Orthogonal cutting — Merchant model</h1>
+      <p class="subtitle">Change the tool and interface parameters to explore idealized chip formation.</p>
+    </div>
+    <div class="actions">
+      <button id="reset" type="button">↺ Reset</button>
+      <button id="save" type="button" title="Download the current cutting geometry as an SVG image">↓ Export figure</button>
+    </div>
+  </div>
+  <div class="layout">
+    <div>
+      <section class="panel" aria-label="Cutting process side view">
+        <div class="panel-head"><h2>2D side view</h2><span class="smallcaps">Illustrative geometry · mm</span></div>
+        <div class="figure"><svg id="cutting-figure" viewBox="0 0 920 530" role="img" aria-label="Side view of workpiece, orthogonal cutting tool, shear plane and flowing chip"></svg></div>
+        <div class="legend">
+          <span><i class="swatch" style="background:#afd6e4"></i>Workpiece</span>
+          <span><i class="swatch" style="background:#f1bf88"></i>Chip</span>
+          <span><i class="swatch" style="background:#a9b4c2"></i>Tool</span>
+          <span><i class="swatch" style="background:#cc4c46"></i>Ideal shear plane</span>
+        </div>
+      </section>
+      <section class="panel control-panel" aria-labelledby="controltitle">
+        <div class="control-heading"><h2 id="controltitle">Adjust parameters</h2><span class="smallcaps">Live update</span></div>
+        <div class="controls">
+          <div class="control"><label for="rake">Rake angle (α) <output id="rake-value" for="rake">10.0°</output></label><input id="rake" type="range" min="-10" max="25" step="0.5" value="10"><div class="ends"><span>−10°</span><span>25°</span></div></div>
+          <div class="control"><label for="friction">Friction angle (β) <output id="friction-value" for="friction">30.0°</output></label><input id="friction" type="range" min="15" max="45" step="0.5" value="30"><div class="ends"><span>15°</span><span>45°</span></div></div>
+          <div class="control"><label for="relief">Relief angle (δ) <output id="relief-value" for="relief">8.0°</output></label><input id="relief" type="range" min="3" max="20" step="0.5" value="8"><div class="ends"><span>3°</span><span>20°</span></div></div>
+          <div class="control"><label for="depth">Uncut chip thickness (t₁) <output id="depth-value" for="depth">1.00 mm</output></label><input id="depth" type="range" min="0.25" max="1.5" step="0.05" value="1"><div class="ends"><span>0.25 mm</span><span>1.50 mm</span></div></div>
+        </div>
+        <div class="tip"><strong>Classroom experiment:</strong> Hold the rake angle constant and increase friction angle. Watch how the shear angle decreases and chip compression increases. Then change relief angle—what happens to the calculated shear angle?</div>
+      </section>
+    </div>
+    <div>
+      <section class="panel" aria-labelledby="outputs-title">
+        <div class="results">
+          <h2 id="outputs-title">Calculated model outputs</h2>
+          <div class="result"><span>Shear angle (φ)</span><strong id="phi-out">35.0°</strong></div>
+          <div class="result"><span>Chip thickness (t₂)</span><strong id="t2-out">—</strong></div>
+          <div class="result"><span>Chip ratio (t₁ / t₂)</span><strong id="ratio-out">—</strong></div>
+          <div class="result"><span>Chip compression (t₂ / t₁)</span><strong id="comp-out">—</strong></div>
+          <div class="result"><span>Shear plane length</span><strong id="length-out">—</strong></div>
+          <div class="result"><span>Ideal shear strain (γ)</span><strong id="strain-out">—</strong></div>
+          <div class="result"><span>Tool wedge angle</span><strong id="wedge-out">—</strong></div>
+        </div>
+        <div class="equations">
+          <p>Merchant minimum-energy relationship</p>
+          <p><code>φ = 45° + α/2 − β/2</code></p>
+          <p><code>t₁/t₂ = sinφ / cos(φ−α)</code></p>
+          <p><code>γ = cotφ + tan(φ−α)</code></p>
+        </div>
+      </section>
+      <section class="panel friction" aria-label="Tool-chip friction angle diagram">
+        <h2>Tool–chip interface friction</h2>
+        <svg id="friction-figure" viewBox="0 0 320 170" role="img" aria-label="Vector triangle relating normal force, friction force, resultant, and friction angle"></svg>
+        <p class="subtitle" style="text-align:center;font-size:12px">F / N = tan β</p>
+      </section>
+      <p class="note"><strong>Model limitations:</strong> Geometric, steady-state, sharp-tool, single-shear-plane illustration—not finite-element analysis or a physical animation of plastic deformation. Chip curling is illustrative. Changing relief angle changes tool clearance but <em>not</em> Merchant’s predicted shear angle; the displayed depth represents uncut chip thickness in this 2D model, not width of cut.</p>
+    </div>
+  </div>
+</main>
+<script>
+(() => {
+  'use strict';
+  const $ = id => document.getElementById(id);
+  const sliderIds = ['rake', 'friction', 'relief', 'depth'];
+  const defaults = {rake:10, friction:30, relief:8, depth:1};
+  const rad = d => d * Math.PI / 180;
+  const f = (n, d=1) => Number(n).toFixed(d);
+  const add = (a,b) => [a[0]+b[0],a[1]+b[1]];
+  const mul = (k,a) => [k*a[0],k*a[1]];
+  const dot = (a,b) => a[0]*b[0]+a[1]*b[1];
+  const makeSample = (start,end,number,fn) => Array.from({length:number},(_,i)=>fn(start+(end-start)*i/(number-1)));
+  const getState = () => Object.fromEntries(sliderIds.map(id=>[id,Number($(id).value)]));
+  let lastState = null;
+
+  function calc(s) {
+    const alpha=rad(s.rake), phi=rad(45+s.rake/2-s.friction/2), delta=rad(s.relief);
+    const r=Math.sin(phi)/Math.cos(phi-alpha), h=s.depth, t2=h/r;
+    return {...s,alpha,phi,delta,r,h,t2,comp:1/r,
+      gamma:1/Math.tan(phi)+Math.tan(phi-alpha), length:h/Math.sin(phi),wedge:90-s.rake-s.relief};
+  }
+
+  function drawCut(s) {
+    const u=[Math.sin(s.alpha),Math.cos(s.alpha)], n=[-Math.cos(s.alpha),Math.sin(s.alpha)];
+    const top=[-s.h/Math.tan(s.phi),s.h], s0=dot(top,u);
+    const contact=s0+Math.max(.9*s.t2,.8*s.h);
+    const faceLen=contact+Math.max(.6*s.h,.5);
+    const faceEnd=mul(faceLen,u), toolRight=Math.max(3.5,faceEnd[0]+2*s.h);
+    const flankEnd=[toolRight,toolRight*Math.tan(s.delta)];
+    const line=makeSample(0,contact,55,t=>mul(t,u));
+    const outerLine=makeSample(s0,contact,40,t=>add(mul(t,u),mul(s.t2,n)));
+    const radius=1.45*s.t2;
+    const theta=makeSample(0,rad(68),55,t=>t);
+    const innerCurl=theta.map(t=>add(mul(contact,u),mul(radius,add(mul(Math.sin(t),u),mul(1-Math.cos(t),n)))));
+    const outerCurl=theta.map((t,i)=>add(innerCurl[i],mul(s.t2,add(mul(Math.cos(t),n),mul(-Math.sin(t),u)))));
+    const chip=[...line,...innerCurl.slice(1),...outerCurl.slice().reverse(),...outerLine.slice().reverse(),[0,0]];
+    const xLeft=Math.min(-5.2,top[0]-1.8*s.h,...chip.map(p=>p[0]-1.2*s.h));
+    const yBottom=-Math.max(1.6,1.45*s.h);
+    const xRight=toolRight+Math.max(.65,.35*s.h);
+    const yTop=Math.max(5,...chip.map(p=>p[1]+.9*s.h),faceEnd[1]+.65*s.h);
+    const panelW=920,panelH=530,padX=33,padY=29;
+    const scale=Math.min((panelW-2*padX)/(xRight-xLeft),(panelH-2*padY)/(yTop-yBottom));
+    const startX=(panelW-scale*(xRight-xLeft))/2,startY=(panelH-scale*(yTop-yBottom))/2;
+    const P=p=>[startX+(p[0]-xLeft)*scale,startY+(yTop-p[1])*scale];
+    const path=pts=>pts.map((q,i)=>`${i?'L':'M'}${P(q).map(v=>v.toFixed(2)).join(',')}`).join(' ')+' Z';
+    const L=(a,b,color,width=2,dash='')=>`<line x1="${P(a)[0]}" y1="${P(a)[1]}" x2="${P(b)[0]}" y2="${P(b)[1]}" stroke="${color}" stroke-width="${width}" ${dash?'stroke-dasharray="'+dash+'"':''} stroke-linecap="round"/>`;
+    const TXT=(str,p,color='#243449',size=13,anchor='middle',weight=500)=>{const [x,y]=P(p);return `<text x="${x}" y="${y}" text-anchor="${anchor}" fill="${color}" font-size="${size}" font-weight="${weight}">${str}</text>`;};
+    const atAngle=(r,deg)=>[r*Math.cos(rad(deg)),r*Math.sin(rad(deg))];
+    const arc=(r,a,b,color)=>{const pts=makeSample(Math.min(a,b),Math.max(a,b),15,t=>atAngle(r,t));return `<path d="${pts.map((p,i)=>`${i?'L':'M'}${P(p).join(',')}`).join(' ')}" fill="none" stroke="${color}" stroke-width="2"/>`;};
+    const depthX=top[0]-Math.max(.65,.45*s.h);
+    const work=[[xLeft,yBottom],[xRight,yBottom],[xRight,0],[0,0],top,[xLeft,s.h]];
+    const tool=[[0,0],faceEnd,[toolRight,faceEnd[1]],flankEnd];
+    const flowStart=add(mul(s0+.18*(contact-s0),u),mul(.48*s.t2,n));
+    const flowEnd=add(mul(s0+.7*(contact-s0),u),mul(.48*s.t2,n));
+    const flowLabel=add(flowStart,mul(.7*s.t2,n));
+    const incomingY=s.h+Math.max(.55,.42*s.h),incomingX=xLeft+Math.max(.3,.25*s.h);
+    const svg=`
+      <defs>
+       <marker id="arrow-c" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#287d91"/></marker>
+       <marker id="arrow-o" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#b56a27"/></marker>
+       <marker id="arrow-d" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto-start-reverse"><path d="M0,0 L6,3 L0,6 Z" fill="#243449"/></marker>
+      </defs>
+      <rect x="0" y="0" width="920" height="530" fill="#fff"/>
+      <path d="${path(work)}" fill="#afd6e4"/>
+      <path d="${path(tool)}" fill="#a9b4c2" stroke="#364a63" stroke-width="2.2" stroke-linejoin="round"/>
+      <path d="${path(chip)}" fill="#f1bf88" stroke="#a65c23" stroke-width="2.1" stroke-linejoin="round"/>
+      ${L([xLeft,s.h],top,'#287d91',2.7)}
+      ${L([0,0],[xRight,0],'#287d91',2.7)}
+      ${L([0,0],top,'#cc4c46',3.0,'8 5')}
+      ${L([0,0],faceEnd,'#364a63',2.5)}
+      ${L([0,0],flankEnd,'#364a63',2.5)}
+      <circle cx="${P([0,0])[0]}" cy="${P([0,0])[1]}" r="3" fill="#364a63"/>
+      ${arc(.62*s.h,180-s.phi*180/Math.PI,180,'#cc4c46')}
+      ${arc(.76*s.h,90-s.rake,90,'#364a63')}
+      ${arc(1.02*s.h,0,s.relief,'#364a63')}
+      ${TXT('φ',atAngle(.92*s.h,180-s.phi*90/Math.PI),'#cc4c46',17)}
+      ${TXT('α',atAngle(1.02*s.h,90-s.rake/2),'#364a63',16)}
+      ${TXT('δ',[1.28*s.h,.34*s.h],'#364a63',15)}
+      <line x1="${P([depthX,0])[0]}" y1="${P([depthX,0])[1]}" x2="${P([depthX,s.h])[0]}" y2="${P([depthX,s.h])[1]}" stroke="#243449" stroke-width="1.6" marker-start="url(#arrow-d)" marker-end="url(#arrow-d)"/>
+      ${TXT('t₁',[depthX-.17*s.h,s.h/2],'#243449',15,'end',650)}
+      ${TXT('SHEAR PLANE',[top[0]-.1*s.h,-.34*s.h],'#cc4c46',12,'middle',700)}
+      ${TXT('TOOL',[toolRight*.72,faceEnd[1]*.65],'#364a63',15,'middle',700)}
+      ${TXT('WORKPIECE',[xLeft+.9*s.h,yBottom+.55*s.h],'#287d91',13,'start',700)}
+      <line x1="${P(flowStart)[0]}" y1="${P(flowStart)[1]}" x2="${P(flowEnd)[0]}" y2="${P(flowEnd)[1]}" stroke="#b56a27" stroke-width="2.5" marker-end="url(#arrow-o)"/>
+      ${TXT('chip flow',flowLabel,'#a65c23',12,'middle',650)}
+      <line x1="${P([incomingX,incomingY])[0]}" y1="${P([incomingX,incomingY])[1]}" x2="${P([incomingX+1.4*s.h,incomingY])[0]}" y2="${P([incomingX+1.4*s.h,incomingY])[1]}" stroke="#287d91" stroke-width="2" marker-end="url(#arrow-c)"/>
+      ${TXT('workpiece motion',[incomingX,incomingY+.29*s.h],'#287d91',12,'start',600)}
+      <line x1="36" y1="499" x2="142" y2="499" stroke="#92a6bc" stroke-width="1.5"/>
+      <text x="36" y="521" fill="#71859b" font-size="12">2D side view · schematic</text>
+    `;
+    $('cutting-figure').innerHTML=svg;
+  }
+
+  function drawFriction(s) {
+    // Normal force drawn upwards, friction force rightwards; β is angle to normal.
+    const bx=75,by=139, N=93, F=N*Math.tan(rad(s.friction)), fx=bx+F,top=by-N;
+    const mk=(id,color)=>`<marker id="${id}" markerWidth="7" markerHeight="7" refX="5.4" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="${color}"/></marker>`;
+    const y=by-29, x=bx+29*Math.sin(rad(s.friction)), yy=by-29*Math.cos(rad(s.friction));
+    const ar=makeSample(0,s.friction,16,b=>[bx+27*Math.sin(rad(b)),by-27*Math.cos(rad(b))]);
+    $('friction-figure').innerHTML=`
+      <defs>${mk('arN','#287d91')}${mk('arF','#b56a27')}${mk('arR','#695ac8')}</defs>
+      <line x1="${bx}" y1="${by}" x2="${bx}" y2="${top}" stroke="#287d91" stroke-width="3" marker-end="url(#arN)" />
+      <line x1="${bx}" y1="${top}" x2="${fx}" y2="${top}" stroke="#b56a27" stroke-width="3" marker-end="url(#arF)" />
+      <line x1="${bx}" y1="${by}" x2="${fx}" y2="${top}" stroke="#695ac8" stroke-width="2.5" marker-end="url(#arR)" />
+      <path d="${ar.map((p,i)=>`${i?'L':'M'}${p.map(v=>v.toFixed(2)).join(' ')}`).join(' ')}" stroke="#695ac8" fill="none" stroke-width="1.5"/>
+      <text x="${bx-10}" y="${by-45}" font-size="15" fill="#287d91" text-anchor="end" font-weight="700">N</text>
+      <text x="${(bx+fx)/2}" y="${top-12}" font-size="15" fill="#b56a27" text-anchor="middle" font-weight="700">F</text>
+      <text x="${fx+10}" y="${top+12}" font-size="15" fill="#695ac8" font-weight="700">R</text>
+      <text x="${bx+43*Math.sin(rad(s.friction/2))}" y="${by-43*Math.cos(rad(s.friction/2))}" fill="#695ac8" font-size="16">β</text>
+    `;
+  }
+
+  function update() {
+    const inputs=getState(),s=calc(inputs);lastState=s;
+    sliderIds.forEach(id=>{$(`${id}-value`).textContent = id==='depth'?`${f(inputs[id],2)} mm`:`${f(inputs[id],1)}°`;});
+    $('phi-out').textContent=`${f(s.phi*180/Math.PI)}°`;
+    $('t2-out').textContent=`${f(s.t2,2)} mm`;
+    $('ratio-out').textContent=f(s.r,3);
+    $('comp-out').textContent=`${f(s.comp,2)}×`;
+    $('length-out').textContent=`${f(s.length,2)} mm`;
+    $('strain-out').textContent=f(s.gamma,2);
+    $('wedge-out').textContent=`${f(s.wedge)}°`;
+    drawCut(s);drawFriction(s);
+  }
+  sliderIds.forEach(id=>$(id).addEventListener('input',update));
+  $('reset').addEventListener('click',()=>{sliderIds.forEach(id=>$(id).value=defaults[id]);update();});
+  $('save').addEventListener('click',()=>{
+    const svg=$('cutting-figure').cloneNode(true);
+    svg.setAttribute('xmlns','http://www.w3.org/2000/svg');
+    svg.setAttribute('width','1104'); svg.setAttribute('height','636');
+    const css='<style>text {font-family:Arial,Helvetica,sans-serif}</style>';
+    svg.insertAdjacentHTML('afterbegin',css);
+    const data=new Blob([new XMLSerializer().serializeToString(svg)],{type:'image/svg+xml;charset=utf-8'});
+    const url=URL.createObjectURL(data),link=document.createElement('a');
+    link.href=url;link.download=`merchant-cutting-rake-${lastState.rake}-friction-${lastState.friction}.svg`;
+    document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),3000);
+  });
+  update();
+})();
+</script>
+</body>
+</html>
